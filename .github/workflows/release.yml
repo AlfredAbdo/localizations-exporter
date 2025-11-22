@@ -1,0 +1,40 @@
+name: Release
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Token (GitHub App)
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'jetbrains'
+          java-version: '21'
+
+      - name: Publish Plugin
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+#          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        run: ./gradlew publishPlugin
+
+      - name: Upload Zip to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/distributions/*.zip
+          token: ${{ steps.generate_token.outputs.token }}

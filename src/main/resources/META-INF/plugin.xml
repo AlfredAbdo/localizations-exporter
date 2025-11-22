@@ -1,0 +1,43 @@
+<idea-plugin>XLSX
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK2="true"/>
+    </extensions>
+
+    <resource-bundle>messages.TranslationsHelperBundle</resource-bundle>
+
+    <!--<name>#alfredabdo.ide.plugins.translations.plugin.name</name>-->
+
+    <depends>org.jetbrains.kotlin</depends>
+    <depends>org.jetbrains.android</depends>
+    <depends>com.intellij.modules.androidstudio</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup displayType="STICKY_BALLOON"
+                           id="alfredabdo.ide.plugins.translations.notifications.group.ExportStringsToExcel"/>
+
+        <notificationGroup displayType="STICKY_BALLOON"
+                           id="alfredabdo.ide.plugins.translations.notifications.group.ImportStringsFromExcel"/>
+
+        <projectConfigurable instance="alfredabdo.ide.plugins.translations.settings.TranslationsProjectConfigurable"
+                             id="project.alfredabdo.ide.plugins.translations.settings.TranslationsHelper"
+                             key="alfredabdo.ide.plugins.translations.plugin.name"
+                             groupId="tools"/>
+    </extensions>
+
+    <actions>
+        <group id="alfredabdo.ide.plugins.translations.groups.TranslationsGroup"
+               class="alfredabdo.ide.plugins.translations.TranslationsActionGroup"
+               popup="true"
+               icon="AllIcons.Actions.InlayGlobe">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+
+            <action id="alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction"
+                    class="alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction"
+                    icon="AllIcons.ToolbarDecorator.Export"/>
+
+            <action id="alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction"
+                    class="alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction"
+                    icon="AllIcons.ToolbarDecorator.Import"/>
+        </group>
+    </actions>
+</idea-plugin>
