@@ -1,3 +1,7 @@
+import org.jetbrains.changelog.Changelog
+import org.jetbrains.changelog.ChangelogPluginConstants.SEM_VER_REGEX
+import org.jetbrains.changelog.date
+
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
@@ -40,9 +44,11 @@ intellijPlatform {
             </ul>
             <b>If you missed the ability to be able to select all strings from Android Studio's translations editor, welcome.</b>
         """.trimIndent()
-        changeNotes = """
-            Initial release.
-        """.trimIndent()
+        changeNotes = provider {
+            changelog.render(
+                Changelog.OutputType.HTML,
+            )
+        }
 
         ideaVersion {
             sinceBuild = "251"
@@ -72,6 +78,14 @@ java {
 
 kotlin {
     jvmToolchain(17)
+}
+
+changelog {
+    version = providers.gradleProperty("pluginVersion")
+    versionPrefix = ""
+    path = file("CHANGELOG.md").canonicalPath
+    header = provider { "[${version.get()}] (_${date()}_)" }
+    keepUnreleasedSection = false
 }
 
 githubRelease {
