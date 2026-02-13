@@ -14,8 +14,13 @@ group = providers.gradleProperty("groupId")
 
 dependencies {
     intellijPlatform {
-        //androidStudio("2025.1.4.8")
-        local("${System.getProperty("user.home")}/local-ides/android-studio-2025.1.4.8-linux")
+        val idePath = project.findProperty("localIdePath")?.toString()
+        if (idePath != null) {
+            local(idePath)
+        } else {
+            androidStudio("2025.1.4.8")
+        }
+
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
         composeUI()
