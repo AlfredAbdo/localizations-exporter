@@ -1,5 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.date
+import java.util.*
 
 plugins {
     java
@@ -11,6 +12,22 @@ plugins {
 }
 
 group = providers.gradleProperty("groupId")
+
+// Loading local.properties
+val localProperties = Properties().apply {
+    try {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            file.inputStream().use { load(it) }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+localProperties.forEach { (key, value) ->
+    extra.set(key.toString(), value)
+}
+//---
 
 dependencies {
     intellijPlatform {
