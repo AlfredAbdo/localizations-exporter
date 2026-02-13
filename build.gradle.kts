@@ -89,7 +89,7 @@ changelog {
 }
 
 githubRelease {
-    val version = providers.gradleProperty("pluginVersion")
+    val version = providers.gradleProperty("pluginVersion").get()
 
     token(
         project.findProperty("githubToken")?.toString()
