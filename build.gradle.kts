@@ -1,5 +1,4 @@
 import org.jetbrains.changelog.Changelog
-import org.jetbrains.changelog.ChangelogPluginConstants.SEM_VER_REGEX
 import org.jetbrains.changelog.date
 
 plugins {
@@ -67,6 +66,7 @@ intellijPlatform {
 
     publishing {
         token = System.getenv("PUBLISH_TOKEN")
+        channels = listOf("alpha")
     }
 }
 
