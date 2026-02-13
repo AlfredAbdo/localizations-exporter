@@ -123,4 +123,5 @@ githubRelease {
     targetCommitish = "main"
     releaseName = "v${version}"
     generateReleaseNotes = true
+    prerelease = true
 }
