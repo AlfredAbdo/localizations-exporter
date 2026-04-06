@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.0-alpha04] (_07/04/2026_)
+
+### Added
+
+- Ability to add multiple languages to export (including the file already opened, which will always be first), and customize the headers
+- New option: "only if missing"; enabling this will only export the resources that are missing from the other included languages
+
+### Modified
+
+- Removed the check for empty resources; now, you can export a file even without resources that will only include the headers
+
 ## [0.1.0-alpha03] (_06/04/2026_)
 
 ### Modified

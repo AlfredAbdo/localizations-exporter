@@ -2,16 +2,21 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
+import alfredabdo.ide.plugins.translations.getLanguageCode
 import alfredabdo.ide.plugins.translations.settings.resolveExportDirectoryPath
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
-import alfredabdo.ide.plugins.translations.ui.ComposeDialogWrapper
-import alfredabdo.ide.plugins.translations.ui.TextFieldWithBrowseButtonAndContextHelp
+import alfredabdo.ide.plugins.translations.ui.LanguageItemData
+import alfredabdo.ide.plugins.translations.ui.LanguagesComponent
+import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
+import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +30,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.refreshAndFindVirtualDirectory
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -53,13 +59,25 @@ class ExportStringsToExcelAction : AnAction() {
 
 
     private fun Project.awaitInfo(file: XmlFile): ExportStringsToExcelService.Details? {
+        val containingDirectoryLanguageCode = file.getLanguageCode()
         val info = Info(
             directoryPath = resolveExportDirectoryPath().orEmpty(),
+            languages = mutableStateListOf(
+                LanguageItemData.default(null, containingDirectoryLanguageCode),
+            ),
+            onlyIfMissing = false,
         )
 
         val dialog = ComposeDialogWrapper(
             TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.title"),
             this,
+            onValidate = {
+                if (info.languages.any { it.code.isBlank() }) {
+                    ValidationInfo(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.languages.emptyCode"))
+                } else {
+                    null
+                }
+            },
         ) {
             Panel(
                 file.name,
@@ -75,6 +93,10 @@ class ExportStringsToExcelAction : AnAction() {
                 } else {
                     null
                 },
+                info.languages.map { language ->
+                    ExportStringsToExcelService.Details.Language(language.label, language.code)
+                },
+                info.onlyIfMissing,
             )
         else
             null
@@ -88,7 +110,9 @@ class ExportStringsToExcelAction : AnAction() {
         info: Info,
     ) {
         Column(
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
@@ -98,12 +122,21 @@ class ExportStringsToExcelAction : AnAction() {
                 ),
             )
 
+            LanguagesComponent(
+                info.languages,
+                onlyIfMissing = info.onlyIfMissing,
+                onOnlyIfMissingChanged = { info.onlyIfMissing = it },
+                onAddLanguage = {
+                    info.languages += LanguageItemData("", "")
+                },
+                Modifier.fillMaxWidth(),
+            )
+
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-
                 val filePathTextState = rememberTextFieldState()
                 val descriptor = remember {
                     FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
@@ -156,7 +189,10 @@ class ExportStringsToExcelAction : AnAction() {
 
     private class Info(
         directoryPath: String,
+        val languages: MutableList<LanguageItemData>,
+        onlyIfMissing: Boolean,
     ) {
         var directoryPath: String by mutableStateOf(directoryPath)
+        var onlyIfMissing: Boolean by mutableStateOf(onlyIfMissing)
     }
 }

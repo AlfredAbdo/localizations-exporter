@@ -7,7 +7,7 @@ import alfredabdo.ide.plugins.translations.settings.ui.ConfigurableWithGlobalOve
 import alfredabdo.ide.plugins.translations.settings.ui.TranslationsConfigurableUI
 import alfredabdo.ide.plugins.translations.settings.ui.TranslationsConfigurableUIState
 import alfredabdo.ide.plugins.translations.settings.ui.TranslationsConfigurableUIStateWithGlobalOverride
-import alfredabdo.ide.plugins.translations.ui.JewelComposePanel
+import alfredabdo.ide.plugins.translations.ui.common.JewelComposePanel
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn

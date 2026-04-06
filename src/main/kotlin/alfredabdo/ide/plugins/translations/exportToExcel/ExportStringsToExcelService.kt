@@ -1,6 +1,7 @@
 package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
+import alfredabdo.ide.plugins.translations.getTranslatedFile
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -10,7 +11,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,30 +27,20 @@ class ExportStringsToExcelService(
 
     class Details(
         val directory: File?,
-    )
+        val languages: List<Language>,
+        val onlyIfMissing: Boolean,
+    ) {
+        class Language(
+            val label: String,
+            val code: String,
+        )
+    }
 
     fun export(
         file: XmlFile,
         details: Details,
     ) {
         scope.launch(Dispatchers.IO) {
-            val root = file.rootTag
-            if (root?.name != "resources") {
-                notificationGroup.createNotification(
-                    TranslationsHelperBundle.message("service.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelService.error.noResources"),
-                    NotificationType.ERROR,
-                ).notify(project)
-                return@launch
-            }
-            val elements = root.subTags.takeUnless { it.isEmpty() } ?: run {
-                notificationGroup.createNotification(
-                    TranslationsHelperBundle.message("service.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelService.error.noElements"),
-                    NotificationType.ERROR,
-                ).notify(project)
-                return@launch
-            }
-
-
             val outputFileName = "${file.name.removeSuffix(".xml")}.xlsx"
             val outputDirectory = details.directory
                 ?.takeIf { it.isDirectory }
@@ -66,7 +56,7 @@ class ExportStringsToExcelService(
                 outputFile.parentFile.mkdirs()
             }
 
-            exportXMLToExcel(elements, outputFile)
+            exportXMLToExcel(file, outputFile, details.languages, details.onlyIfMissing)
 
             val notification = notificationGroup.createNotification(
                 TranslationsHelperBundle.message(
@@ -92,7 +82,23 @@ class ExportStringsToExcelService(
     }
 
 
-    private fun exportXMLToExcel(elements: Array<XmlTag>, outputFile: File) {
+    private fun exportXMLToExcel(inputFile: XmlFile, outputFile: File, languages: List<Details.Language>, onlyIfMissing: Boolean) {
+        // Here, the first language always points to the file that was opened for the action (inputFile), and so we optimize by not fetching it again;
+        // in future updates, it might not anymore once we add the ability to export without pointing to a file, and needs to be fixed by then.
+        val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
+        val data = languages
+            .mapIndexed { index, language ->
+                CodeInfo(
+                    language.code,
+                    language.label,
+                    if (index == 0)
+                        inputFile
+                    else
+                        inputFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, inputFile.name),
+                )
+            }
+
+
         val workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("Strings")
         var rowIndex = 0
@@ -105,31 +111,49 @@ class ExportStringsToExcelService(
                 setCellValue("ID")
                 cellStyle = headerStyle
             }
-            createCell(1, CellType.STRING).run {
-                setCellValue("English")
-                cellStyle = headerStyle
+            data.forEachIndexed { index, info ->
+                createCell(1 + index, CellType.STRING).run {
+                    setCellValue(info.label)
+                    cellStyle = headerStyle
+                }
             }
         }
         rowIndex++
 
+
         runReadAction {
-            elements.asSequence()
-                .filter { it.name == "string" }
-                .forEach { element ->
-                    element.getAttributeValue("name")?.let { name ->
-                        val value = element.value.text
-                        sheet.createRow(rowIndex).run {
-                            createCell(0, CellType.STRING).run {
-                                setCellValue(name)
-                            }
-                            createCell(1, CellType.STRING).run {
+            val elements = data.asSequence()
+                .map { info ->
+                    info to (info.file?.rootTag?.takeIf { it.name == "resources" }?.subTags ?: emptyArray())
+                }
+                .flatMap { (info, elements) ->
+                    elements.asSequence()
+                        .filter { element -> element.name == "string" && element.getAttributeValue("name") != null }
+                        .map { element -> element to info.code }
+                        .toList()
+                }
+                .groupBy { (element, /*code*/_) -> element.getAttributeValue("name").orEmpty() }
+
+            elements.forEach { (id, relatedElements) ->
+                if (!onlyIfMissing || relatedElements.size < languages.size) {
+                    sheet.createRow(rowIndex).run {
+                        createCell(0, CellType.STRING).run {
+                            setCellValue(id)
+                        }
+
+                        relatedElements.forEach { (element, code) ->
+                            val value = element.value.text
+                            val index = languages.indexOfFirst { it.code == code }
+                            createCell(1 + index, CellType.STRING).run {
                                 setCellValue(value)
                             }
                         }
                     }
                     rowIndex++
                 }
+            }
         }
+
 
         outputFile.outputStream().use { fos ->
             workbook.write(fos)
@@ -137,6 +161,12 @@ class ExportStringsToExcelService(
 
         workbook.close()
     }
+
+    private class CodeInfo(
+        val code: String,
+        val label: String,
+        val file: XmlFile?,
+    )
 
 
     private val notificationGroup
