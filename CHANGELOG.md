@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0-alpha04] (_0x/04/2026_)
+
+### Added
+
+- d
+
 ## [0.1.0-alpha03] (_06/04/2026_)
 
 ### Modified

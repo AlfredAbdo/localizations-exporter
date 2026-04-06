@@ -1,4 +1,4 @@
-package alfredabdo.ide.plugins.translations.ui
+package alfredabdo.ide.plugins.translations.ui.common
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardOptions

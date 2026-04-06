@@ -1,4 +1,4 @@
-package alfredabdo.ide.plugins.translations.ui
+package alfredabdo.ide.plugins.translations.ui.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding

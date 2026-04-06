@@ -1,4 +1,4 @@
-package alfredabdo.ide.plugins.translations.ui
+package alfredabdo.ide.plugins.translations.ui.common
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +17,7 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.IconActionButton
 import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.component.painterResource
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 @Composable
@@ -109,7 +109,7 @@ fun BrowseButton(
     val project = LocalProject.current
 
     IconActionButton(
-        painterResource("general/openDisk.svg"),
+        AllIconsKeys.General.OpenDisk,
         "Browse",
         onClick = {
             FileChooser.chooseFile(fileChooserDescriptor, project, provideDefaultSelection(), onFileSelected)

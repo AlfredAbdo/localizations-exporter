@@ -1,7 +1,7 @@
 package alfredabdo.ide.plugins.translations.settings.ui
 
 import TranslationsHelperBundle
-import alfredabdo.ide.plugins.translations.ui.TextFieldWithBrowseButtonAndContextHelp
+import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.input.rememberTextFieldState

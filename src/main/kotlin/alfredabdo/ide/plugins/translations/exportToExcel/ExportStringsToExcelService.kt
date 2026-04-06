@@ -27,7 +27,14 @@ class ExportStringsToExcelService(
 
     class Details(
         val directory: File?,
-    )
+        val languages: List<Language>,
+        val onlyIfMissing: Boolean,
+    ) {
+        class Language(
+            val label: String,
+            val code: String,
+        )
+    }
 
     fun export(
         file: XmlFile,

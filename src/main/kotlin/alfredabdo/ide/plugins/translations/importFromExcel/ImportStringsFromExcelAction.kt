@@ -4,10 +4,10 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
-import alfredabdo.ide.plugins.translations.ui.ComposeDialogWrapper
-import alfredabdo.ide.plugins.translations.ui.ContextHelpButton
-import alfredabdo.ide.plugins.translations.ui.IntTextField
-import alfredabdo.ide.plugins.translations.ui.TextFieldWithBrowseButton
+import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
+import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
+import alfredabdo.ide.plugins.translations.ui.common.IntTextField
+import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
