@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.2.21"
+kotlin = "2.3.20"
 changelog = "2.5.0"
 poi-ooxml = "5.5.1"
 breadmoirai-github-release = "2.5.2"
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+#kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" } fixme due to bug, kotlin cannot be declared here
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 breadmoirai-github-release = { id = "com.github.breadmoirai.github-release", version.ref = "breadmoirai-github-release" }

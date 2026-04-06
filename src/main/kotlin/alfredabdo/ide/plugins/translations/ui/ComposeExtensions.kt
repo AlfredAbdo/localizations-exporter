@@ -13,7 +13,7 @@ fun JewelComposePanel(
     project: Project?,
     config: ComposePanel.() -> Unit = {},
     content: @Composable () -> Unit,
-): JComponent = JewelComposePanel(config) {
+): JComponent = JewelComposePanel(config = config) {
     CompositionLocalProvider(
         LocalProject provides project,
     ) {

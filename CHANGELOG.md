@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.1.0-alpha02] (_2026-02-13_)
+## [0.1.0-alpha03] (_06/04/2026_)
+
+### Modified
+
+- Updated dependencies
+
+## [0.1.0-alpha02] (_13/02/2026_)
 
 ### Modified
 

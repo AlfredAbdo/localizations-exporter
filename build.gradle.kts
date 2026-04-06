@@ -4,7 +4,10 @@ import java.util.*
 
 plugins {
     java
-    alias(libs.plugins.kotlin.jvm)
+    //fixme due to bug, we are relying on the version from settings.gradle.kts
+//    alias(libs.plugins.kotlin.jvm)
+    kotlin("jvm")
+    //---
     id("org.jetbrains.intellij.platform")
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.changelog)
