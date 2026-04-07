@@ -44,14 +44,6 @@ fun LanguagesComponent(
                 contentDescription = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing.help.contentDescription"),
             )
         }
-        //Always show English as default and unmodifiable:
-        LanguageItem(
-            rememberTextFieldState(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.label.default")),
-            rememberTextFieldState(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")),
-            Modifier.fillMaxWidth(),
-            enabled = false,
-        )
-        //---
         states.forEach { state ->
             val labelTextFieldState = rememberTextFieldState(state.label)
             LaunchedEffect(labelTextFieldState.text) {
@@ -68,7 +60,7 @@ fun LanguagesComponent(
                 labelTextFieldState,
                 codeTextFieldState,
                 Modifier.fillMaxWidth(),
-                enabled = true,
+                codeEnabled = !state.isDefault,
             )
         }
         IconActionButton(
@@ -89,6 +81,16 @@ class LanguageItemData(
 ) {
     var label: String by mutableStateOf(label)
     var code: String by mutableStateOf(code)
+    var isDefault: Boolean = false
+        private set
+
+
+    companion object {
+        fun default(label: String?, code: String?) = LanguageItemData(
+            label ?: TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.label.default"),
+            code ?: TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default"),
+        ).apply { isDefault = true }
+    }
 }
 
 @Composable
@@ -96,7 +98,7 @@ fun LanguageItem(
     labelTextFieldState: TextFieldState,
     codeTextFieldState: TextFieldState,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    codeEnabled: Boolean = true,
 ) {
     Row(
         modifier,
@@ -107,14 +109,13 @@ fun LanguageItem(
             labelTextFieldState,
             Modifier.widthIn(min = 84.dp),
             placeholder = { Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.label.placeholder")) },
-            enabled = enabled,
         )
 
         TextField(
             codeTextFieldState,
             Modifier.widthIn(min = 84.dp),
             placeholder = { Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.placeholder")) },
-            enabled = enabled,
+            enabled = codeEnabled,
         )
     }
 }

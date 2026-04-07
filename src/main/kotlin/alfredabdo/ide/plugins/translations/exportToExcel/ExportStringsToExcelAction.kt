@@ -2,6 +2,7 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
+import alfredabdo.ide.plugins.translations.getLanguageCode
 import alfredabdo.ide.plugins.translations.settings.resolveExportDirectoryPath
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
 import alfredabdo.ide.plugins.translations.ui.LanguageItemData
@@ -29,6 +30,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.refreshAndFindVirtualDirectory
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -57,14 +59,25 @@ class ExportStringsToExcelAction : AnAction() {
 
 
     private fun Project.awaitInfo(file: XmlFile): ExportStringsToExcelService.Details? {
+        val containingDirectoryLanguageCode = file.getLanguageCode()
         val info = Info(
             directoryPath = resolveExportDirectoryPath().orEmpty(),
+            languages = mutableStateListOf(
+                LanguageItemData.default(null, containingDirectoryLanguageCode),
+            ),
             onlyIfMissing = false,
         )
 
         val dialog = ComposeDialogWrapper(
             TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.title"),
             this,
+            onValidate = {
+                if (info.languages.any { it.code.isBlank() }) {
+                    ValidationInfo(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.languages.emptyCode"))
+                } else {
+                    null
+                }
+            },
         ) {
             Panel(
                 file.name,
@@ -171,14 +184,12 @@ class ExportStringsToExcelAction : AnAction() {
                     }
                 }
             }
-
-            //...
         }
     }
 
     private class Info(
         directoryPath: String,
-        val languages: MutableList<LanguageItemData> = mutableStateListOf(),
+        val languages: MutableList<LanguageItemData>,
         onlyIfMissing: Boolean,
     ) {
         var directoryPath: String by mutableStateOf(directoryPath)
