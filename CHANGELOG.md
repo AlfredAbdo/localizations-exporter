@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.0-alpha05] (_unreleased_)
+## [0.1.0-alpha05] (_08/04/2026_)
 
 ### Added
 
