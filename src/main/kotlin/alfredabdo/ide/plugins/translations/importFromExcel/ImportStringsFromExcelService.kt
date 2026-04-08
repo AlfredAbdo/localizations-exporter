@@ -162,9 +162,10 @@ class ImportStringsFromExcelService(
                 }
             }
 
+            val codeStyleManager = CodeStyleManager.getInstance(project)
             data.forEach { info ->
                 try {
-                    CodeStyleManager.getInstance(project).reformat(info.xmlFile)
+                    codeStyleManager.reformat(info.xmlFile)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
