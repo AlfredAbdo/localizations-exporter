@@ -2,6 +2,8 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.getTranslatedFile
+import alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelService.Details.Language
+import alfredabdo.ide.plugins.translations.importFromExcel.exception.InvalidResourcesFileException
 import alfredabdo.ide.plugins.translations.utils.runWriteCommandAction
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notification.NotificationGroupManager
@@ -36,68 +38,148 @@ class ImportStringsFromExcelService(
     class Details(
         val xlsxFile: File,
         val idColumnIndex: Int,
-        val translatedLanguageCode: String,
-        val translatedColumnIndex: Int,
-    )
+        val languages: List<Language>,
+        val shouldOverwriteResources: Boolean,
+    ) {
+        class Language(
+            val columnIndex: Int,
+            val code: String,
+            val isCurrentFile: Boolean,
+        )
+    }
 
 
     fun import(
-        targetFile: XmlFile,
+        file: XmlFile,
         details: Details,
     ) {
         scope.launch(Dispatchers.EDT) {
-            val availableXmlFile = if (details.translatedLanguageCode.isEmpty())
-                targetFile
-            else
-                targetFile.getTranslatedFile(details.translatedLanguageCode, targetFile.name)
+            try {
+                val files = importXMLFromExcel(
+                    file,
+                    details.xlsxFile,
+                    details.idColumnIndex,
+                    details.languages,
+                    details.shouldOverwriteResources,
+                )
 
-            val destinationFile = availableXmlFile?.virtualFile
-                ?: targetFile.createFileForLanguageCode(details.translatedLanguageCode, targetFile.name)
-                ?: return@launch
+                val notification = notificationGroup.createNotification(
+                    TranslationsHelperBundle.message(
+                        "service.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelService.success.message",
+                        details.xlsxFile.name,
+                        project.name,
+                    ),
+                    NotificationType.INFORMATION,
+                )
+                notification.addAction(
+                    object : AnAction(TranslationsHelperBundle.lazyMessage("alfredabdo.ide.plugins.translations.general.showFiles")) {
+                        override fun actionPerformed(p0: AnActionEvent) {
+                            files.forEachIndexed { index, file ->
+                                FileEditorManager.getInstance(project)
+                                    .openFile(file, index == 0)
+                            }
 
-            val targetXmlFile = availableXmlFile
-                ?: fileFactory.createFileFromText(
-                    targetFile.name,
-                    XmlFileType.INSTANCE,
-                    "<resources></resources>"
-                ) as? XmlFile
-                ?: return@launch
+                            //ProjectView.getInstance(project).selectPsiElement(destinationFile, true)
 
-            val root = targetXmlFile.rootTag
-            if (root?.name != "resources") {
+                            notification.hideBalloon()
+                        }
+                    }
+                )
+                notification.notify(project)
+            } catch (e: InvalidResourcesFileException) {
                 notificationGroup.createNotification(
-                    TranslationsHelperBundle.message("service.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelService.error.invalidDestination"),
+                    e.message.orEmpty(),
                     NotificationType.ERROR,
                 ).notify(project)
-                return@launch
             }
-
-            importXMLFromExcel(details, availableXmlFile, targetXmlFile, root, destinationFile)
-
-            val notification = notificationGroup.createNotification(
-                TranslationsHelperBundle.message(
-                    "service.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelService.success.message",
-                    details.xlsxFile.name,
-                    project.name,
-                ),
-                NotificationType.INFORMATION,
-            )
-            notification.addAction(
-                object : AnAction(TranslationsHelperBundle.lazyMessage("alfredabdo.ide.plugins.translations.general.showFile")) {
-                    override fun actionPerformed(p0: AnActionEvent) {
-                        FileEditorManager.getInstance(project)
-                            .openFile(destinationFile, true)
-
-                        //ProjectView.getInstance(project).selectPsiElement(destinationFile, true)
-
-                        notification.hideBalloon()
-                    }
-                }
-            )
-            notification.notify(project)
         }
     }
 
+
+    @Throws(InvalidResourcesFileException::class)
+    private suspend fun importXMLFromExcel(
+        currentFile: XmlFile,
+        inputFile: File,
+        idColumnIndex: Int,
+        languages: List<Language>,
+        shouldOverwriteResources: Boolean,
+    ): List<VirtualFile> {
+        val fis = inputFile.inputStream()
+        val workbook = XSSFWorkbook(fis)
+        val sheet = workbook.getSheetAt(0)
+
+        val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
+        val data = languages
+            .map { language ->
+                val xmlFile = if (language.isCurrentFile) {
+                    currentFile
+                } else {
+                    currentFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, inputFile.name)
+                }
+
+                val destinationFile = xmlFile?.virtualFile
+                    ?: currentFile.createFileForLanguageCode(language.code, currentFile.name)!! //fixme need better handling
+
+                CodeInfo(
+                    language.columnIndex,
+                    xmlFile
+                        ?: fileFactory.createFileFromText(
+                            currentFile.name,
+                            XmlFileType.INSTANCE,
+                            "<resources></resources>"
+                        ) as XmlFile,
+                    xmlFile != null,
+                    destinationFile,
+                )
+            }
+
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            if (data.any { info -> info.xmlFile.rootTag?.name != "resources" }) {
+                workbook.close()
+                throw InvalidResourcesFileException()
+            }
+
+
+            sheet.forEach { row ->
+                if (row.rowNum == 0) {
+                    //skip
+                } else {
+                    val id = row.getCell(idColumnIndex)?.stringCellValue?.trim()
+                    val valuesMap = data.map { info ->
+                        info.xmlFile.rootTag!! to row.getCell(info.columnIndex)?.stringCellValue?.trim()
+                    }
+
+                    if (!shouldOverwriteResources) {
+                        valuesMap.forEach { (root, value) -> root.addStringChild(id, value) }
+                    } else {
+                        valuesMap.forEach { (root, value) ->
+                            root.findSubTags("string").firstOrNull { subTag -> subTag.getAttributeValue("name") == id }
+                                ?.let { subTag -> subTag.value.text = value.orEmpty() }
+                                ?: root.addStringChild(id, value)
+                        }
+                    }
+                }
+            }
+
+            val codeStyleManager = CodeStyleManager.getInstance(project)
+            data.forEach { info ->
+                try {
+                    codeStyleManager.reformat(info.xmlFile)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                if (!info.originalXmlFileAvailable) {
+                    info.psiFile.setBinaryContent(info.xmlFile.text.toByteArray())
+                }
+            }
+        }
+
+        workbook.close()
+
+        return data.map { it.psiFile }
+    }
 
     private suspend fun XmlFile.createFileForLanguageCode(code: String, targetFileName: String): VirtualFile? {
         return runWriteCommandAction(this@ImportStringsFromExcelService.project) {
@@ -111,44 +193,24 @@ class ImportStringsFromExcelService(
         }
     }
 
-    private fun importXMLFromExcel(
-        inputDetails: Details,
-        availableXmlFile: XmlFile?,
-        targetXmlFile: XmlFile,
-        targetRoot: XmlTag,
-        outputFile: VirtualFile,
-    ) {
-        val fis = inputDetails.xlsxFile.inputStream()
-        val workbook = XSSFWorkbook(fis)
-        val sheet = workbook.getSheetAt(0)
-
-        WriteCommandAction.runWriteCommandAction(project) {
-            sheet.forEach {
-                if (it.rowNum == 0) {
-                    //skip
-                } else {
-                    val childTag = targetRoot.createChildTag(
-                        "string",
-                        null,
-                        it.getCell(inputDetails.translatedColumnIndex)?.stringCellValue?.trim(),
-                        false,
-                    )
-                    childTag.setAttribute("name", it.getCell(inputDetails.idColumnIndex)?.stringCellValue?.trim())
-                    targetRoot.add(childTag)
-                }
-            }
-
-            try {
-                CodeStyleManager.getInstance(project).reformat(targetXmlFile)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            if (availableXmlFile == null) {
-                outputFile.setBinaryContent(targetXmlFile.text.toByteArray())
-            }
+    private fun XmlTag.addStringChild(name: String?, value: String?) {
+        val childTag = createChildTag(
+            "string",
+            null,
+            value,
+            false,
+        ).apply {
+            setAttribute("name", name)
         }
+        add(childTag)
     }
+
+    private class CodeInfo(
+        val columnIndex: Int,
+        val xmlFile: XmlFile,
+        val originalXmlFileAvailable: Boolean,
+        val psiFile: VirtualFile,
+    )
 
 
     private val fileFactory = PsiFileFactory.getInstance(project)

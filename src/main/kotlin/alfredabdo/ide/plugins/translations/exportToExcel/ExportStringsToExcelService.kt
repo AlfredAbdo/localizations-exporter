@@ -33,6 +33,7 @@ class ExportStringsToExcelService(
         class Language(
             val label: String,
             val code: String,
+            val isCurrentFile: Boolean,
         )
     }
 
@@ -82,19 +83,18 @@ class ExportStringsToExcelService(
     }
 
 
-    private fun exportXMLToExcel(inputFile: XmlFile, outputFile: File, languages: List<Details.Language>, onlyIfMissing: Boolean) {
-        // Here, the first language always points to the file that was opened for the action (inputFile), and so we optimize by not fetching it again;
-        // in future updates, it might not anymore once we add the ability to export without pointing to a file, and needs to be fixed by then.
+    private fun exportXMLToExcel(currentFile: XmlFile, outputFile: File, languages: List<Details.Language>, onlyIfMissing: Boolean) {
         val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
         val data = languages
-            .mapIndexed { index, language ->
+            .map { language ->
                 CodeInfo(
                     language.code,
                     language.label,
-                    if (index == 0)
-                        inputFile
-                    else
-                        inputFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, inputFile.name),
+                    if (language.isCurrentFile) {
+                        currentFile
+                    } else {
+                        currentFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, currentFile.name)
+                    },
                 )
             }
 

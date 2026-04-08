@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-alpha05] (_unreleased_)
+
+### Added
+
+- Ability to import multiple languages at once from an Excel file
+- New option: "overwrite strings"; enabling this will replace exiting string resources, i.e. conflicting strings with the same "name" attribute results in updating the value to match the last one resolved
+
+### Modified
+
+- Fixed bug where the Excel workbook was not being closed in ImportStringsFromExcelService.kt after importing
+- Added ability to remove from the list of languages (export and import); now, it will be clearer which language will read from the currently opened file
+
 ## [0.1.0-alpha04] (_07/04/2026_)
 
 ### Added

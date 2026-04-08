@@ -5,8 +5,6 @@ import alfredabdo.ide.plugins.translations.asXMLFile
 import alfredabdo.ide.plugins.translations.getLanguageCode
 import alfredabdo.ide.plugins.translations.settings.resolveExportDirectoryPath
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
-import alfredabdo.ide.plugins.translations.ui.LanguageItemData
-import alfredabdo.ide.plugins.translations.ui.LanguagesComponent
 import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +61,7 @@ class ExportStringsToExcelAction : AnAction() {
         val info = Info(
             directoryPath = resolveExportDirectoryPath().orEmpty(),
             languages = mutableStateListOf(
-                LanguageItemData.default(null, containingDirectoryLanguageCode),
+                ExportLanguageItemData.forCurrentFile(null, containingDirectoryLanguageCode),
             ),
             onlyIfMissing = false,
         )
@@ -94,7 +92,7 @@ class ExportStringsToExcelAction : AnAction() {
                     null
                 },
                 info.languages.map { language ->
-                    ExportStringsToExcelService.Details.Language(language.label, language.code)
+                    ExportStringsToExcelService.Details.Language(language.label, language.code, language.isCurrentFile)
                 },
                 info.onlyIfMissing,
             )
@@ -122,12 +120,15 @@ class ExportStringsToExcelAction : AnAction() {
                 ),
             )
 
-            LanguagesComponent(
+            ExportLanguagesComponent(
                 info.languages,
                 onlyIfMissing = info.onlyIfMissing,
                 onOnlyIfMissingChanged = { info.onlyIfMissing = it },
                 onAddLanguage = {
-                    info.languages += LanguageItemData("", "")
+                    info.languages += ExportLanguageItemData("", "")
+                },
+                onDeleteLanguage = { language ->
+                    info.languages.remove(language)
                 },
                 Modifier.fillMaxWidth(),
             )
@@ -189,7 +190,7 @@ class ExportStringsToExcelAction : AnAction() {
 
     private class Info(
         directoryPath: String,
-        val languages: MutableList<LanguageItemData>,
+        val languages: MutableList<ExportLanguageItemData>,
         onlyIfMissing: Boolean,
     ) {
         var directoryPath: String by mutableStateOf(directoryPath)
