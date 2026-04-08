@@ -4,6 +4,7 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
+import alfredabdo.ide.plugins.translations.getLanguageCode
 import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.IntTextField
@@ -12,8 +13,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,10 +32,11 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.refreshAndFindVirtualFile
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
+import org.jetbrains.jewel.ui.component.Checkbox
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 class ImportStringsFromExcelAction : AnAction() {
@@ -47,7 +51,7 @@ class ImportStringsFromExcelAction : AnAction() {
     override fun actionPerformed(p0: AnActionEvent) {
         val file = p0.getData(LangDataKeys.PSI_FILE)?.asXMLFile() ?: return
 
-        val details = p0.project?.awaitInfo()
+        val details = p0.project?.awaitInfo(file)
         details?.let {
             p0.project?.service<ImportStringsFromExcelService>()
                 ?.import(file, it)
@@ -55,8 +59,13 @@ class ImportStringsFromExcelAction : AnAction() {
     }
 
 
-    private fun Project.awaitInfo(): ImportStringsFromExcelService.Details? {
-        val info = Info()
+    private fun Project.awaitInfo(file: XmlFile): ImportStringsFromExcelService.Details? {
+        val containingDirectoryLanguageCode = file.getLanguageCode()
+        val info = Info(
+            mutableStateListOf(
+                ImportLanguageItemData.forCurrentFile(null, containingDirectoryLanguageCode),
+            ),
+        )
 
         val dialog = ComposeDialogWrapper(
             TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.title"),
@@ -65,6 +74,8 @@ class ImportStringsFromExcelAction : AnAction() {
                 if (info.filePath.isEmpty()) {
                     info.showFilePathError = true
                     ValidationInfo(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.chooseFile.missing"))
+                } else if (info.languages.any { it.code.isBlank() }) {
+                    ValidationInfo(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.languages.emptyCode"))
                 } else {
                     null
                 }
@@ -77,8 +88,10 @@ class ImportStringsFromExcelAction : AnAction() {
             ImportStringsFromExcelService.Details(
                 info.filePath.asPath().refreshAndFindVirtualFile()!!.toIoFile(),
                 info.idColumnIndex,
-                info.translatedLanguageCode,
-                info.translatedColumnIndex,
+                info.languages.map { language ->
+                    ImportStringsFromExcelService.Details.Language(language.columnIndex, language.code, language.isCurrentFile)
+                },
+                info.shouldOverwriteResources,
             )
         else
             null
@@ -89,7 +102,9 @@ class ImportStringsFromExcelAction : AnAction() {
         info: Info,
     ) {
         Column(
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
@@ -158,62 +173,39 @@ class ImportStringsFromExcelAction : AnAction() {
                 )
             }
 
-            Row(
+            ImportLanguagesComponent(
+                info.languages,
+                onAddLanguage = {
+                    info.languages += ImportLanguageItemData(info.languages.lastOrNull()?.columnIndex?.plus(1) ?: 1, "")
+                },
+                onDeleteLanguage = { language ->
+                    info.languages.remove(language)
+                },
                 Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val translatedLanguageCodeTextState = rememberTextFieldState(info.translatedLanguageCode)
-
-                LaunchedEffect(translatedLanguageCodeTextState.text) {
-                    info.translatedLanguageCode = translatedLanguageCodeTextState.text.toString()
-                }
-
-                Text(
-                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.translatedLanguageCode.header"),
-                )
-                TextField(
-                    translatedLanguageCodeTextState,
-                    Modifier.weight(1f),
-                    trailingIcon = {
-                        ContextHelpButton(
-                            TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.translatedLanguageCode.help"),
-                            contentDescription = TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.translatedLanguageCode.help.contentDescription"),
-                        )
-                    },
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                )
-            }
+            )
 
             Row(
-                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                val translatedColumnIndexTextState = rememberTextFieldState(info.translatedColumnIndex.toString())
-
-                Text(
-                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.translatedColumnIndex.header"),
+                Checkbox(
+                    info.shouldOverwriteResources,
+                    onCheckedChange = { info.shouldOverwriteResources = it },
                 )
-                IntTextField(
-                    translatedColumnIndexTextState,
-                    Modifier.weight(1f),
-                    range = 0 until Int.MAX_VALUE,
-                    keyboardStep = 1,
-                    onValueChanged = { value ->
-                        info.translatedColumnIndex = value ?: 0
-                    },
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                Text(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.overwriteStrings"))
+                ContextHelpButton(
+                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.overwriteStrings.help"),
+                    contentDescription = TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelAction.overwriteStrings.help.contentDescription"),
                 )
             }
         }
     }
 
-    private class Info {
+    private class Info(
+        val languages: MutableList<ImportLanguageItemData>,
+    ) {
         var filePath: String by mutableStateOf("")
         var idColumnIndex: Int by mutableIntStateOf(0)
-        var translatedLanguageCode: String by mutableStateOf("")
-        var translatedColumnIndex: Int by mutableIntStateOf(2)
+        var shouldOverwriteResources: Boolean by mutableStateOf(false)
 
         var showFilePathError: Boolean by mutableStateOf(false)
     }

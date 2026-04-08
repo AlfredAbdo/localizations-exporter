@@ -11,4 +11,4 @@ internal fun XmlFile.getTranslatedFile(languageCode: String?, fileName: String):
         ?.findFile(fileName) as? XmlFile?
 
 internal fun XmlFile.getLanguageCode(): String? =
-    containingDirectory?.name?.substringAfterLast("-", "")?.takeIf { it.isNotEmpty() }
+    containingDirectory?.name?.substringAfter("-", "")?.takeIf { it.isNotEmpty() }
