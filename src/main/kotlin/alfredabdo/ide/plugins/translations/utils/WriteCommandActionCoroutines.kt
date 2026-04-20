@@ -8,11 +8,8 @@ import com.intellij.openapi.util.Computable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@Suppress("UnstableApiUsage")
 suspend fun <T> runWriteCommandAction(project: Project, action: () -> T): T {
     return withContext(Dispatchers.EDT) {
-        blockingContext {
-            WriteCommandAction.runWriteCommandAction(project, Computable(action))
-        }
+        WriteCommandAction.runWriteCommandAction<T & Any>(project, Computable<T>(action))
     }
 }

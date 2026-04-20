@@ -11,11 +11,8 @@ pluginManagement {
 }
 
 plugins {
-    val kotlinVersion: String by settings
-
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-    kotlin("jvm") version kotlinVersion apply false //fixme due to bug, kotlin has to be declared here again
-    id("org.jetbrains.intellij.platform.settings") version "2.13.1"
+    id("org.jetbrains.intellij.platform.settings") version "2.14.0"
 }
 
 dependencyResolutionManagement {
