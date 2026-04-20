@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0-alpha06] (_20/04/2026_)
+
+### Added
+
+- Ability to right-click an XML file in the Project View tool window instead of having to open the file
+
 ## [0.1.0-alpha05] (_08/04/2026_)
 
 ### Added

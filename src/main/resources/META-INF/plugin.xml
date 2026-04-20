@@ -1,3 +1,4 @@
+<!--suppress PluginXmlCapitalization -->
 <idea-plugin>XLSX
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <supportsKotlinPluginMode supportsK2="true"/>
@@ -13,9 +14,13 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup displayType="STICKY_BALLOON"
-                           id="alfredabdo.ide.plugins.translations.notifications.group.ExportStringsToExcel"/>
+                           id="alfredabdo.ide.plugins.translations.notifications.group.ExportStringsToExcel"
+                           bundle="messages.TranslationsHelperBundle"
+                           key="alfredabdo.ide.plugins.translations.notifications.group.export.title"/>
 
         <notificationGroup displayType="STICKY_BALLOON"
+                           bundle="messages.TranslationsHelperBundle"
+                           key="alfredabdo.ide.plugins.translations.notifications.group.import.title"
                            id="alfredabdo.ide.plugins.translations.notifications.group.ImportStringsFromExcel"/>
 
         <projectConfigurable instance="alfredabdo.ide.plugins.translations.settings.TranslationsProjectConfigurable"
@@ -30,6 +35,7 @@
                popup="true"
                icon="AllIcons.Actions.InlayGlobe">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
 
             <action id="alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction"
                     class="alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction"

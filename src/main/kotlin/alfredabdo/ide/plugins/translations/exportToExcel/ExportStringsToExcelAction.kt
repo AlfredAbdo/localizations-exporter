@@ -4,37 +4,19 @@ import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
 import alfredabdo.ide.plugins.translations.getLanguageCode
 import alfredabdo.ide.plugins.translations.settings.resolveExportDirectoryPath
-import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
 import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
-import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.mutableStateListOf
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.refreshAndFindVirtualDirectory
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.jewel.foundation.theme.LocalTextStyle
-import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
-import java.io.File
 
 class ExportStringsToExcelAction : AnAction() {
 
@@ -58,7 +40,7 @@ class ExportStringsToExcelAction : AnAction() {
 
     private fun Project.awaitInfo(file: XmlFile): ExportStringsToExcelService.Details? {
         val containingDirectoryLanguageCode = file.getLanguageCode()
-        val info = Info(
+        val info = ExportStringsToExcelActionInfo(
             directoryPath = resolveExportDirectoryPath().orEmpty(),
             languages = mutableStateListOf(
                 ExportLanguageItemData.forCurrentFile(null, containingDirectoryLanguageCode),
@@ -77,7 +59,7 @@ class ExportStringsToExcelAction : AnAction() {
                 }
             },
         ) {
-            Panel(
+            ExportStringsToExcelActionPanel(
                 file.name,
                 this.name,
                 info,
@@ -98,102 +80,5 @@ class ExportStringsToExcelAction : AnAction() {
             )
         else
             null
-    }
-
-
-    @Composable
-    private fun Panel(
-        fileName: String,
-        projectName: String,
-        info: Info,
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                TranslationsHelperBundle.message(
-                    "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.confirmation.message",
-                    fileName,
-                ),
-            )
-
-            ExportLanguagesComponent(
-                info.languages,
-                onlyIfMissing = info.onlyIfMissing,
-                onOnlyIfMissingChanged = { info.onlyIfMissing = it },
-                onAddLanguage = {
-                    info.languages += ExportLanguageItemData("", "")
-                },
-                onDeleteLanguage = { language ->
-                    info.languages.remove(language)
-                },
-                Modifier.fillMaxWidth(),
-            )
-
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val filePathTextState = rememberTextFieldState()
-                val descriptor = remember {
-                    FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
-                        title =
-                            TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.title")
-                        withFileFilter { file -> file.isDirectory }
-                    }
-                }
-
-                LaunchedEffect(info.directoryPath) {
-                    filePathTextState.setTextAndPlaceCursorAtEnd(info.directoryPath)
-                }
-
-                Text(
-                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.header"),
-                )
-                TextFieldWithBrowseButtonAndContextHelp(
-                    filePathTextState,
-                    descriptor,
-                    contextHelpText = remember(fileName, projectName) {
-                        TranslationsHelperBundle.message(
-                            "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help",
-                            listOf(
-                                defaultTranslationsExportDirectory,
-                                projectName,
-                                "${fileName.removeSuffix(".xml")}.xlsx",
-                            ).joinToString(File.separator)
-                        )
-                    },
-                    Modifier.weight(1f),
-                    readOnly = true,
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                    contextHelpContentDescription = remember {
-                        TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help.contentDescription")
-                    },
-                ) { file ->
-                    try {
-                        if (file.isDirectory) {
-                            info.directoryPath = file.path
-                        } else {
-                            info.directoryPath = ""
-                        }
-                    } catch (_: Exception) {
-                        info.directoryPath = ""
-                    }
-                }
-            }
-        }
-    }
-
-    private class Info(
-        directoryPath: String,
-        val languages: MutableList<ExportLanguageItemData>,
-        onlyIfMissing: Boolean,
-    ) {
-        var directoryPath: String by mutableStateOf(directoryPath)
-        var onlyIfMissing: Boolean by mutableStateOf(onlyIfMissing)
     }
 }
