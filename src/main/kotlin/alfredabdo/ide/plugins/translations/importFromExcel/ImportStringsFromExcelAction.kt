@@ -5,6 +5,7 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.asXMLFile
 import alfredabdo.ide.plugins.translations.getLanguageCode
+import alfredabdo.ide.plugins.translations.importFromExcel.options.ImportSpecialCharactersHandling
 import alfredabdo.ide.plugins.translations.ui.common.ComposeDialogWrapper
 import androidx.compose.runtime.mutableStateListOf
 import com.android.tools.idea.util.toIoFile
@@ -42,8 +43,11 @@ class ImportStringsFromExcelAction : AnAction() {
     private fun Project.awaitInfo(file: XmlFile): ImportStringsFromExcelService.Details? {
         val containingDirectoryLanguageCode = file.getLanguageCode()
         val info = ImportStringsFromExcelActionInfo(
-            mutableStateListOf(
+            languages = mutableStateListOf(
                 ImportLanguageItemData.forCurrentFile(null, containingDirectoryLanguageCode),
+            ),
+            advancedOptions = ImportStringsFromExcelActionInfo.AdvancedOptions(
+                specialCharactersHandling = ImportSpecialCharactersHandling.None,
             ),
         )
 
@@ -72,6 +76,11 @@ class ImportStringsFromExcelAction : AnAction() {
                     ImportStringsFromExcelService.Details.Language(language.columnIndex, language.code, language.isCurrentFile)
                 },
                 info.shouldOverwriteResources,
+                info.advancedOptions.let { advanced ->
+                    ImportStringsFromExcelService.Details.Advanced(
+                        advanced.specialCharactersHandling,
+                    )
+                },
             )
         else
             null

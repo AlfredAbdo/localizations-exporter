@@ -4,6 +4,7 @@ import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.getTranslatedFile
 import alfredabdo.ide.plugins.translations.importFromExcel.ImportStringsFromExcelService.Details.Language
 import alfredabdo.ide.plugins.translations.importFromExcel.exception.InvalidResourcesFileException
+import alfredabdo.ide.plugins.translations.importFromExcel.options.ImportSpecialCharactersHandling
 import alfredabdo.ide.plugins.translations.utils.runWriteCommandAction
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notification.NotificationGroupManager
@@ -11,14 +12,14 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.findDirectory
-import com.intellij.openapi.vfs.findFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -40,11 +41,16 @@ class ImportStringsFromExcelService(
         val idColumnIndex: Int,
         val languages: List<Language>,
         val shouldOverwriteResources: Boolean,
+        val advanced: Advanced,
     ) {
         class Language(
             val columnIndex: Int,
             val code: String,
             val isCurrentFile: Boolean,
+        )
+
+        class Advanced(
+            val specialCharactersHandling: ImportSpecialCharactersHandling,
         )
     }
 
@@ -61,6 +67,7 @@ class ImportStringsFromExcelService(
                     details.idColumnIndex,
                     details.languages,
                     details.shouldOverwriteResources,
+                    details.advanced.specialCharactersHandling,
                 )
 
                 val notification = notificationGroup.createNotification(
@@ -103,38 +110,33 @@ class ImportStringsFromExcelService(
         idColumnIndex: Int,
         languages: List<Language>,
         shouldOverwriteResources: Boolean,
+        specialCharactersHandling: ImportSpecialCharactersHandling,
     ): List<VirtualFile> {
-        val fis = inputFile.inputStream()
-        val workbook = XSSFWorkbook(fis)
-        val sheet = workbook.getSheetAt(0)
+        var virtualFiles: List<VirtualFile> = emptyList()
 
-        val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
-        val data = languages
-            .map { language ->
-                val xmlFile = if (language.isCurrentFile) {
-                    currentFile
-                } else {
-                    currentFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, inputFile.name)
+        runWriteCommandAction(project) {
+            val fis = inputFile.inputStream()
+            val workbook = XSSFWorkbook(fis)
+            val sheet = workbook.getSheetAt(0)
+
+            val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
+            val data = languages
+                .map { language ->
+                    val xmlFile = if (language.isCurrentFile) {
+                        currentFile
+                    } else {
+                        currentFile.getTranslatedFile(language.code.takeUnless { it == defaultCode }, inputFile.name)
+                    }
+                        ?: currentFile.createFileForLanguageCode(language.code, currentFile.name)!! //fixme need better handling
+
+                    CodeInfo(
+                        language.columnIndex,
+                        xmlFile,
+                        xmlFile.virtualFile,
+                    )
                 }
 
-                val destinationFile = xmlFile?.virtualFile
-                    ?: currentFile.createFileForLanguageCode(language.code, currentFile.name)!! //fixme need better handling
 
-                CodeInfo(
-                    language.columnIndex,
-                    xmlFile
-                        ?: fileFactory.createFileFromText(
-                            currentFile.name,
-                            XmlFileType.INSTANCE,
-                            "<resources></resources>"
-                        ) as XmlFile,
-                    xmlFile != null,
-                    destinationFile,
-                )
-            }
-
-
-        WriteCommandAction.runWriteCommandAction(project) {
             if (data.any { info -> info.xmlFile.rootTag?.name != "resources" }) {
                 workbook.close()
                 throw InvalidResourcesFileException()
@@ -151,12 +153,18 @@ class ImportStringsFromExcelService(
                     }
 
                     if (!shouldOverwriteResources) {
-                        valuesMap.forEach { (root, value) -> root.addStringChild(id, value) }
+                        valuesMap.forEach { (root, value) ->
+                            root.addStringChild(
+                                id,
+                                value?.handleSpecialCharacters(specialCharactersHandling)
+                            )
+                        }
                     } else {
                         valuesMap.forEach { (root, value) ->
                             root.findSubTags("string").firstOrNull { subTag -> subTag.getAttributeValue("name") == id }
-                                ?.let { subTag -> subTag.value.text = value.orEmpty() }
-                                ?: root.addStringChild(id, value)
+                                ?.value
+                                ?.setEscapedText(value?.handleSpecialCharacters(specialCharactersHandling).orEmpty())
+                                ?: root.addStringChild(id, value?.handleSpecialCharacters(specialCharactersHandling))
                         }
                     }
                 }
@@ -170,27 +178,39 @@ class ImportStringsFromExcelService(
                     e.printStackTrace()
                 }
 
-                if (!info.originalXmlFileAvailable) {
-                    info.psiFile.setBinaryContent(info.xmlFile.text.toByteArray())
+                val psiManager = PsiDocumentManager.getInstance(project)
+                psiManager.getDocument(info.xmlFile)?.let { document ->
+                    psiManager.doPostponedOperationsAndUnblockDocument(document)
+                    FileDocumentManager.getInstance().saveDocument(document)
                 }
             }
+
+            workbook.close()
+
+            virtualFiles = data.map { it.virtualFile }
         }
 
-        workbook.close()
-
-        return data.map { it.psiFile }
+        return virtualFiles
     }
 
-    private suspend fun XmlFile.createFileForLanguageCode(code: String, targetFileName: String): VirtualFile? {
-        return runWriteCommandAction(this@ImportStringsFromExcelService.project) {
-            virtualFile.parent?.parent
-                ?.let {
-                    it.findDirectory("values-$code") ?: it.createChildDirectory(project, "values-$code")
-                }
-                ?.let {
-                    it.findFile(targetFileName) ?: it.createChildData(project, targetFileName)
-                }
-        }
+    private fun XmlFile.createFileForLanguageCode(code: String, targetFileName: String): XmlFile? {
+        val psiManager = PsiManager.getInstance(project)
+        return virtualFile.parent?.parent
+            ?.let {
+                val dir = it.findChild("values-$code") ?: it.createChildDirectory(project, "values-$code")
+                psiManager.findDirectory(dir)
+            }
+            ?.let {
+                it.findFile(targetFileName) as? XmlFile?
+                    ?: run {
+                        val file = fileFactory.createFileFromText(
+                            targetFileName,
+                            XmlFileType.INSTANCE,
+                            "<resources></resources>",
+                        )
+                        it.add(file) as XmlFile
+                    }
+            }
     }
 
     private fun XmlTag.addStringChild(name: String?, value: String?) {
@@ -205,11 +225,18 @@ class ImportStringsFromExcelService(
         add(childTag)
     }
 
+    private fun String.handleSpecialCharacters(handling: ImportSpecialCharactersHandling): String = when (handling) {
+        ImportSpecialCharactersHandling.None -> this
+
+        ImportSpecialCharactersHandling.CDATA -> if (contains('&')) "<![CDATA[$this]]>" else this
+
+        ImportSpecialCharactersHandling.XmlCharacter -> this.replace("&", "&amp;")
+    }
+
     private class CodeInfo(
         val columnIndex: Int,
         val xmlFile: XmlFile,
-        val originalXmlFileAvailable: Boolean,
-        val psiFile: VirtualFile,
+        val virtualFile: VirtualFile,
     )
 
 

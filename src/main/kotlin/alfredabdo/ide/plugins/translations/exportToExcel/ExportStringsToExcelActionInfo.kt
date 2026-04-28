@@ -8,7 +8,17 @@ internal class ExportStringsToExcelActionInfo(
     directoryPath: String,
     val languages: MutableList<ExportLanguageItemData>,
     onlyIfMissing: Boolean,
+    advancedOptions: AdvancedOptions,
 ) {
     var directoryPath: String by mutableStateOf(directoryPath)
     var onlyIfMissing: Boolean by mutableStateOf(onlyIfMissing)
+    var advancedOptions: AdvancedOptions by mutableStateOf(advancedOptions)
+
+    internal class AdvancedOptions(
+        ampersandConversion: Boolean,
+        cdataUnwrapping: Boolean,
+    ) {
+        var ampersandConversion: Boolean by mutableStateOf(ampersandConversion)
+        var cdataUnwrapping: Boolean by mutableStateOf(cdataUnwrapping)
+    }
 }
