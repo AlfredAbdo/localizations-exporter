@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.20"
+kotlin = "2.3.21"
 changelog = "2.5.0"
 poi-ooxml = "5.5.1"
 breadmoirai-github-release = "2.5.2"
