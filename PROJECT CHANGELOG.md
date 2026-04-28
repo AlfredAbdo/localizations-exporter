@@ -3,9 +3,11 @@
 ## [0.1.0-alpha07] (_28/04/2026_)
 
 - Added advanced options for exporting (ampersand XML handling and cdata unwrapping).
-- ...
+- Added advanced options for importing (special characters handling).
 - Recoded the panel composables to make the code more readable.
-- Had to add _TranslationsHelperBundle.rawMessage()_ that relies on Java's ResourceBundle instead to allow rendering the & without issues. 
+- Had to add _TranslationsHelperBundle.rawMessage()_ that relies on Java's ResourceBundle instead to allow rendering the & without issues.
+- Fixed undo action not being available when importing strings into an existing file:
+  - The way the virtual files were created had to be massively refactored in order to properly add the changes to the Undo history.
 - Updated Kotlin version to _2.3.21_.
 - ! Could not update IntelliJ Platform Plugin version to _2.15.0_ because of the KotlinCompile bug (again).
 
