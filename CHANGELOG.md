@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.0-alpha07] (_28/04/2026_)
+
+### Added
+
+- Advanced options for exporting localizations:
+  - Convert special ampersand character in XML (`&amp;`) to its raw representation (`&`).
+  - Extract the raw string from inside CDATA wrappers.
+- 
+
 ## [0.1.0-alpha06] (_20/04/2026_)
 
 ### Added

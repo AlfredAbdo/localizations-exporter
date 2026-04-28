@@ -2,11 +2,9 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
+import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -20,6 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.component.Checkbox
+import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Text
 import java.io.File
 
@@ -55,57 +55,121 @@ internal fun ExportStringsToExcelActionPanel(
             Modifier.fillMaxWidth(),
         )
 
-        Row(
+        ExportPathOption(
+            info.directoryPath,
+            onDirectoryPathChanged = { info.directoryPath = it },
+            fileName,
+            projectName,
             Modifier.fillMaxWidth(),
+        )
+
+        AdvancedOptionsGroup(
+            info.advancedOptions,
+            Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
+        )
+    }
+}
+
+
+@Composable
+private fun ExportPathOption(
+    directoryPath: String,
+    onDirectoryPathChanged: (String) -> Unit,
+    fileName: String,
+    projectName: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        val filePathTextState = rememberTextFieldState()
+        val descriptor = remember {
+            FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
+                title =
+                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.title")
+                withFileFilter { file -> file.isDirectory }
+            }
+        }
+
+        LaunchedEffect(directoryPath) {
+            filePathTextState.setTextAndPlaceCursorAtEnd(directoryPath)
+        }
+
+        Text(
+            TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.header"),
+        )
+        TextFieldWithBrowseButtonAndContextHelp(
+            filePathTextState,
+            descriptor,
+            contextHelpText = remember(fileName, projectName) {
+                TranslationsHelperBundle.message(
+                    "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help",
+                    listOf(
+                        defaultTranslationsExportDirectory,
+                        projectName,
+                        "${fileName.removeSuffix(".xml")}.xlsx",
+                    ).joinToString(File.separator)
+                )
+            },
+            Modifier.weight(1f),
+            readOnly = true,
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+            contextHelpContentDescription = remember {
+                TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help.contentDescription")
+            },
+        ) { file ->
+            try {
+                if (file.isDirectory) {
+                    onDirectoryPathChanged(file.path)
+                } else {
+                    onDirectoryPathChanged("")
+                }
+            } catch (_: Exception) {
+                onDirectoryPathChanged("")
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdvancedOptionsGroup(
+    options: ExportStringsToExcelActionInfo.AdvancedOptions,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        GroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.general.advancedSettings"))
+        Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val filePathTextState = rememberTextFieldState()
-            val descriptor = remember {
-                FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
-                    title =
-                        TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.title")
-                    withFileFilter { file -> file.isDirectory }
-                }
-            }
-
-            LaunchedEffect(info.directoryPath) {
-                filePathTextState.setTextAndPlaceCursorAtEnd(info.directoryPath)
-            }
-
-            Text(
-                TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.header"),
+            Checkbox(
+                options.ampersandConversion,
+                { options.ampersandConversion = it },
             )
-            TextFieldWithBrowseButtonAndContextHelp(
-                filePathTextState,
-                descriptor,
-                contextHelpText = remember(fileName, projectName) {
-                    TranslationsHelperBundle.message(
-                        "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help",
-                        listOf(
-                            defaultTranslationsExportDirectory,
-                            projectName,
-                            "${fileName.removeSuffix(".xml")}.xlsx",
-                        ).joinToString(File.separator)
-                    )
-                },
-                Modifier.weight(1f),
-                readOnly = true,
-                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                contextHelpContentDescription = remember {
-                    TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.chooseDirectory.help.contentDescription")
-                },
-            ) { file ->
-                try {
-                    if (file.isDirectory) {
-                        info.directoryPath = file.path
-                    } else {
-                        info.directoryPath = ""
-                    }
-                } catch (_: Exception) {
-                    info.directoryPath = ""
-                }
-            }
+            Text(TranslationsHelperBundle.rawMessage("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.ampersandConversion"))
+            ContextHelpButton(
+                TranslationsHelperBundle.rawMessage("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.ampersandConversion.help"),
+                contentDescription = TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.ampersandConversion.help.contentDescription"),
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(
+                options.cdataUnwrapping,
+                { options.cdataUnwrapping = it },
+            )
+            Text(TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.cdataUnwrapping"))
+            ContextHelpButton(
+                TranslationsHelperBundle.rawMessage("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.cdataUnwrapping.help"),
+                contentDescription = TranslationsHelperBundle.message("action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.advancedSettings.cdataUnwrapping.help.contentDescription"),
+            )
         }
     }
 }

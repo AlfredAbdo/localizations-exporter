@@ -46,6 +46,10 @@ class ExportStringsToExcelAction : AnAction() {
                 ExportLanguageItemData.forCurrentFile(null, containingDirectoryLanguageCode),
             ),
             onlyIfMissing = false,
+            advancedOptions = ExportStringsToExcelActionInfo.AdvancedOptions(
+                ampersandConversion = false,
+                cdataUnwrapping = false,
+            ),
         )
 
         val dialog = ComposeDialogWrapper(
@@ -77,6 +81,12 @@ class ExportStringsToExcelAction : AnAction() {
                     ExportStringsToExcelService.Details.Language(language.label, language.code, language.isCurrentFile)
                 },
                 info.onlyIfMissing,
+                info.advancedOptions.let { advanced ->
+                    ExportStringsToExcelService.Details.Advanced(
+                        advanced.ampersandConversion,
+                        advanced.cdataUnwrapping,
+                    )
+                },
             )
         else
             null

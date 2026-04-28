@@ -1,5 +1,14 @@
 # Project Changelog
 
+## [0.1.0-alpha07] (_28/04/2026_)
+
+- Added advanced options for exporting (ampersand XML handling and cdata unwrapping).
+- ...
+- Recoded the panel composables to make the code more readable.
+- Had to add _TranslationsHelperBundle.rawMessage()_ that relies on Java's ResourceBundle instead to allow rendering the & without issues. 
+- Updated Kotlin version to _2.3.21_.
+- ! Could not update IntelliJ Platform Plugin version to _2.15.0_ because of the KotlinCompile bug (again).
+
 ## [0.1.0-alpha06] (_20/04/2026_)
 
 - Added titles for notification groups.

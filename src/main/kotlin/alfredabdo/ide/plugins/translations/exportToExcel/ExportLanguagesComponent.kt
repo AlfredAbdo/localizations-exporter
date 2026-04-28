@@ -20,7 +20,7 @@ import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
-fun ExportLanguagesComponent(
+internal fun ExportLanguagesComponent(
     states: List<ExportLanguageItemData>,
     onlyIfMissing: Boolean,
     onOnlyIfMissingChanged: (newState: Boolean) -> Unit,

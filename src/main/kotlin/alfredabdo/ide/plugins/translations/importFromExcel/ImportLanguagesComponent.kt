@@ -20,7 +20,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.typography
 
 @Composable
-fun ImportLanguagesComponent(
+internal fun ImportLanguagesComponent(
     states: List<ImportLanguageItemData>,
     onAddLanguage: () -> Unit,
     onDeleteLanguage: (state: ImportLanguageItemData) -> Unit,

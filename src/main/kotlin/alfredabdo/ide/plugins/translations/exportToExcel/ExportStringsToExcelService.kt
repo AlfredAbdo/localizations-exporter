@@ -29,11 +29,17 @@ class ExportStringsToExcelService(
         val directory: File?,
         val languages: List<Language>,
         val onlyIfMissing: Boolean,
+        val advanced: Advanced,
     ) {
         class Language(
             val label: String,
             val code: String,
             val isCurrentFile: Boolean,
+        )
+
+        class Advanced(
+            val ampersandConversion: Boolean,
+            val cdataUnwrapping: Boolean,
         )
     }
 
@@ -57,7 +63,14 @@ class ExportStringsToExcelService(
                 outputFile.parentFile.mkdirs()
             }
 
-            exportXMLToExcel(file, outputFile, details.languages, details.onlyIfMissing)
+            exportXMLToExcel(
+                file,
+                outputFile,
+                details.languages,
+                details.onlyIfMissing,
+                details.advanced.ampersandConversion,
+                details.advanced.cdataUnwrapping,
+            )
 
             val notification = notificationGroup.createNotification(
                 TranslationsHelperBundle.message(
@@ -83,7 +96,14 @@ class ExportStringsToExcelService(
     }
 
 
-    private fun exportXMLToExcel(currentFile: XmlFile, outputFile: File, languages: List<Details.Language>, onlyIfMissing: Boolean) {
+    private fun exportXMLToExcel(
+        currentFile: XmlFile,
+        outputFile: File,
+        languages: List<Details.Language>,
+        onlyIfMissing: Boolean,
+        ampersandConversion: Boolean,
+        cdataUnwrapping: Boolean,
+    ) {
         val defaultCode = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.code.default")
         val data = languages
             .map { language ->
@@ -143,6 +163,8 @@ class ExportStringsToExcelService(
 
                         relatedElements.forEach { (element, code) ->
                             val value = element.value.text
+                                .let { text -> if (ampersandConversion) text.replace("&amp;", "&") else text }
+                                .let { text -> if (cdataUnwrapping) text.removeSurrounding("<![CDATA[", "]]>") else text }
                             val index = languages.indexOfFirst { it.code == code }
                             createCell(1 + index, CellType.STRING).run {
                                 setCellValue(value)
