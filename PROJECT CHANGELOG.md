@@ -1,5 +1,9 @@
 # Project Changelog
 
+## [0.1.0-alpha08] (_01/05/2026_)
+
+- Updated Java SDK to 21 in order to better support Wayland in Linux.
+
 ## [0.1.0-alpha07] (_28/04/2026_)
 
 - Added advanced options for exporting (ampersand XML handling and cdata unwrapping).
