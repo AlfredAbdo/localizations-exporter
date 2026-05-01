@@ -2,6 +2,10 @@
 
 ## [0.1.0-alpha08] (_01/05/2026_)
 
+### Added
+
+- A scrollbar to both UIs of import and export to inform the user when the content needs to be scrolled
+
 ### Modified
 
 - Updated Java SDK to 21 in order to better support Wayland in Linux
