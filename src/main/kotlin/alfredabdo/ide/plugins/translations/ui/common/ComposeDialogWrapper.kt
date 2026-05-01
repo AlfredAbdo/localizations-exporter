@@ -1,8 +1,9 @@
 package alfredabdo.ide.plugins.translations.ui.common
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -23,6 +24,10 @@ class ComposeDialogWrapper(
     private val project: Project,
     private val onValidate: () -> ValidationInfo? = { null },
     private val actionsProvider: (ComposeDialogWrapper.() -> Array<Action>)? = null,
+    private val parentModifier: Modifier = Modifier
+        .padding(16.dp)
+        .height(320.dp)
+        .width(640.dp),
     private val content: @Composable () -> Unit,
 ) : DialogWrapper(project) {
 
@@ -36,11 +41,7 @@ class ComposeDialogWrapper(
             CompositionLocalProvider(
                 LocalProject provides project, //fixme just to make sure
             ) {
-                Box(
-                    Modifier
-                        .padding(16.dp)
-                        .widthIn(max = 640.dp), //fixme don't know the logic used by DialogPanel
-                ) {
+                Box(parentModifier) {
                     content()
                 }
             }

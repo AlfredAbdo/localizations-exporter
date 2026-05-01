@@ -2,6 +2,7 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.importFromExcel.options.ImportSpecialCharactersHandling
+import alfredabdo.ide.plugins.translations.ui.common.BoxWithScrollableContent
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.IntTextField
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButton
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -23,52 +23,57 @@ import androidx.compose.ui.unit.dp
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
-import org.jetbrains.jewel.ui.component.*
+import org.jetbrains.jewel.ui.component.Checkbox
+import org.jetbrains.jewel.ui.component.GroupHeader
+import org.jetbrains.jewel.ui.component.ListComboBox
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun ImportStringsFromExcelActionPanel(
     info: ImportStringsFromExcelActionInfo,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        ImportFileOption(
-            info.filePath,
-            onFilePathChanged = { info.filePath = it },
-            info.showFilePathError,
-            onShowFilePathErrorChanged = { info.showFilePathError = it },
-            Modifier.fillMaxWidth(),
-        )
+    BoxWithScrollableContent(Modifier.fillMaxWidth()) { scrollState ->
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ImportFileOption(
+                info.filePath,
+                onFilePathChanged = { info.filePath = it },
+                info.showFilePathError,
+                onShowFilePathErrorChanged = { info.showFilePathError = it },
+                Modifier.fillMaxWidth(),
+            )
 
-        ColumnIdOption(
-            info.idColumnIndex,
-            onIdColumnIndexChanged = { info.idColumnIndex = it },
-            Modifier.fillMaxWidth(),
-        )
+            ColumnIdOption(
+                info.idColumnIndex,
+                onIdColumnIndexChanged = { info.idColumnIndex = it },
+                Modifier.fillMaxWidth(),
+            )
 
-        ImportLanguagesComponent(
-            info.languages,
-            onAddLanguage = {
-                info.languages += ImportLanguageItemData(info.languages.lastOrNull()?.columnIndex?.plus(1) ?: 1, "")
-            },
-            onDeleteLanguage = { language ->
-                info.languages.remove(language)
-            },
-            Modifier.fillMaxWidth(),
-        )
+            ImportLanguagesComponent(
+                info.languages,
+                onAddLanguage = {
+                    info.languages += ImportLanguageItemData(info.languages.lastOrNull()?.columnIndex?.plus(1) ?: 1, "")
+                },
+                onDeleteLanguage = { language ->
+                    info.languages.remove(language)
+                },
+                Modifier.fillMaxWidth(),
+            )
 
-        OverwriteStringsOption(
-            info.shouldOverwriteResources,
-            onEnabledChanged = { info.shouldOverwriteResources = it },
-        )
+            OverwriteStringsOption(
+                info.shouldOverwriteResources,
+                onEnabledChanged = { info.shouldOverwriteResources = it },
+            )
 
-        AdvancedOptionsGroup(
-            info.advancedOptions,
-            Modifier.fillMaxWidth(),
-        )
+            AdvancedOptionsGroup(
+                info.advancedOptions,
+                Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

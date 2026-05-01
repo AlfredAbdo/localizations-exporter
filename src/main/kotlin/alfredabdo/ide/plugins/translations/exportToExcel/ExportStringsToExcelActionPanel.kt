@@ -2,10 +2,10 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
+import alfredabdo.ide.plugins.translations.ui.common.BoxWithScrollableContent
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -29,46 +29,48 @@ internal fun ExportStringsToExcelActionPanel(
     projectName: String,
     info: ExportStringsToExcelActionInfo,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            TranslationsHelperBundle.message(
-                "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.confirmation.message",
-                fileName,
-            ),
-        )
-
-        ExportLanguagesComponent(
-            info.languages,
-            onlyIfMissing = info.onlyIfMissing,
-            onOnlyIfMissingChanged = { info.onlyIfMissing = it },
-            onAddLanguage = {
-                info.languages += ExportLanguageItemData("", "")
-            },
-            onDeleteLanguage = { language ->
-                info.languages.remove(language)
-            },
-            Modifier.fillMaxWidth(),
-        )
-
-        ExportPathOption(
-            info.directoryPath,
-            onDirectoryPathChanged = { info.directoryPath = it },
-            fileName,
-            projectName,
-            Modifier.fillMaxWidth(),
-        )
-
-        AdvancedOptionsGroup(
-            info.advancedOptions,
+    BoxWithScrollableContent(Modifier.fillMaxWidth()) { scrollState ->
+        Column(
             Modifier
-                .padding(top = 8.dp)
-                .fillMaxWidth(),
-        )
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                TranslationsHelperBundle.message(
+                    "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.confirmation.message",
+                    fileName,
+                ),
+            )
+
+            ExportLanguagesComponent(
+                info.languages,
+                onlyIfMissing = info.onlyIfMissing,
+                onOnlyIfMissingChanged = { info.onlyIfMissing = it },
+                onAddLanguage = {
+                    info.languages += ExportLanguageItemData("", "")
+                },
+                onDeleteLanguage = { language ->
+                    info.languages.remove(language)
+                },
+                Modifier.fillMaxWidth(),
+            )
+
+            ExportPathOption(
+                info.directoryPath,
+                onDirectoryPathChanged = { info.directoryPath = it },
+                fileName,
+                projectName,
+                Modifier.fillMaxWidth(),
+            )
+
+            AdvancedOptionsGroup(
+                info.advancedOptions,
+                Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+            )
+        }
     }
 }
 
