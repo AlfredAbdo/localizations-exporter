@@ -2,6 +2,7 @@ package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.ui.common.IntTextField
+import alfredabdo.ide.plugins.translations.ui.group.AppGroupHeader
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,6 @@ import org.jetbrains.jewel.ui.component.IconActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
-import org.jetbrains.jewel.ui.typography
 
 @Composable
 internal fun ImportLanguagesComponent(
@@ -28,12 +28,11 @@ internal fun ImportLanguagesComponent(
 ) {
     Column(
         modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.title"))
+        AppGroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.title"))
         Text(
             TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.import.subtitle"),
-            style = JewelTheme.typography.small,
         )
         states.forEach { state ->
             key(state) {

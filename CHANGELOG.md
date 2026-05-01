@@ -1,21 +1,32 @@
 # Changelog
 
+## [0.1.0-alpha08] (_02/05/2026_)
+
+### Added
+
+- A scrollbar to both UIs of import and export to inform the user when the content needs to be scrolled
+
+### Modified
+
+- Updated Java SDK to 21 in order to better support Wayland in Linux
+- Export and import UIs were updated to be more organized and clearer
+
 ## [0.1.0-alpha07] (_28/04/2026_)
 
 ### Added
 
 - Advanced options for exporting localizations:
-  - Convert special ampersand character in XML (`&amp;`) to its raw representation (`&`).
-  - Extract the raw string from inside CDATA wrappers.
+  - Convert special ampersand character in XML (`&amp;`) to its raw representation (`&`)
+  - Extract the raw string from inside CDATA wrappers
 - Advanced options for importing localizations:
   - Special character handling (for now, only `&` is handled):
-    - _None_: No changes will be done to strings, even the ones that should be handled.
-    - _Convert to XML special character_: `&` will be converted to its XML representation (`&amp;`).
-    - _Wrap in CDATA_: any strings with `&` will be wrapped with the CDATA tag.
+    - _None_: No changes will be done to strings, even the ones that should be handled
+    - _Convert to XML special character_: `&` will be converted to its XML representation (`&amp;`)
+    - _Wrap in CDATA_: any strings with `&` will be wrapped with the CDATA tag
 
 ### Modified
 
-- Fixed undo action not being available when importing strings into an existing file.
+- Fixed undo action not being available when importing strings into an existing file
 
 ## [0.1.0-alpha06] (_20/04/2026_)
 

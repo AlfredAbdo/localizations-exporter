@@ -2,10 +2,11 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.settings.ui.defaultTranslationsExportDirectory
+import alfredabdo.ide.plugins.translations.ui.common.BoxWithScrollableContent
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButtonAndContextHelp
+import alfredabdo.ide.plugins.translations.ui.group.AppGroupHeader
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Checkbox
-import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Text
 import java.io.File
 
@@ -29,46 +29,42 @@ internal fun ExportStringsToExcelActionPanel(
     projectName: String,
     info: ExportStringsToExcelActionInfo,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            TranslationsHelperBundle.message(
-                "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.confirmation.message",
-                fileName,
-            ),
-        )
-
-        ExportLanguagesComponent(
-            info.languages,
-            onlyIfMissing = info.onlyIfMissing,
-            onOnlyIfMissingChanged = { info.onlyIfMissing = it },
-            onAddLanguage = {
-                info.languages += ExportLanguageItemData("", "")
-            },
-            onDeleteLanguage = { language ->
-                info.languages.remove(language)
-            },
-            Modifier.fillMaxWidth(),
-        )
-
-        ExportPathOption(
-            info.directoryPath,
-            onDirectoryPathChanged = { info.directoryPath = it },
-            fileName,
-            projectName,
-            Modifier.fillMaxWidth(),
-        )
-
-        AdvancedOptionsGroup(
-            info.advancedOptions,
+    BoxWithScrollableContent(Modifier.fillMaxWidth()) { scrollState ->
+        Column(
             Modifier
-                .padding(top = 8.dp)
-                .fillMaxWidth(),
-        )
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ExportPathOption(
+                info.directoryPath,
+                onDirectoryPathChanged = { info.directoryPath = it },
+                fileName,
+                projectName,
+                Modifier.fillMaxWidth(),
+            )
+
+            ExportLanguagesComponent(
+                fileName,
+                info.languages,
+                onlyIfMissing = info.onlyIfMissing,
+                onOnlyIfMissingChanged = { info.onlyIfMissing = it },
+                onAddLanguage = {
+                    info.languages += ExportLanguageItemData("", "")
+                },
+                onDeleteLanguage = { language ->
+                    info.languages.remove(language)
+                },
+                Modifier.fillMaxWidth(),
+            )
+
+            AdvancedOptionsGroup(
+                info.advancedOptions,
+                Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+            )
+        }
     }
 }
 
@@ -144,7 +140,7 @@ private fun AdvancedOptionsGroup(
         modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        GroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.general.advancedSettings"))
+        AppGroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.general.advancedSettings"))
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
