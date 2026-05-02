@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.0-alpha08] (_unreleased_)
+## [0.1.0-alpha08] (_02/05/2026_)
 
 ### Added
 

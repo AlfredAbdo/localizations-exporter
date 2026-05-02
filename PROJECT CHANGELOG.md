@@ -1,6 +1,6 @@
 # Project Changelog
 
-## [0.1.0-alpha08] (_unreleased_)
+## [0.1.0-alpha08] (_02/05/2026_)
 
 - Updated Java SDK to 21 in order to better support Wayland in Linux.
 - Added Jewel's VerticalScrollbar to both import and export to let the user see the content if many languages are added:
