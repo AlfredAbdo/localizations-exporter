@@ -9,6 +9,7 @@
 ### Modified
 
 - Updated Java SDK to 21 in order to better support Wayland in Linux
+- Export and import UIs were updated to be more organized and clearer
 
 ## [0.1.0-alpha07] (_28/04/2026_)
 

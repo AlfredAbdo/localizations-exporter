@@ -6,6 +6,7 @@ import alfredabdo.ide.plugins.translations.ui.common.BoxWithScrollableContent
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
 import alfredabdo.ide.plugins.translations.ui.common.IntTextField
 import alfredabdo.ide.plugins.translations.ui.common.TextFieldWithBrowseButton
+import alfredabdo.ide.plugins.translations.ui.group.AppGroupHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Checkbox
-import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.ListComboBox
 import org.jetbrains.jewel.ui.component.Text
 
@@ -37,7 +37,7 @@ internal fun ImportStringsFromExcelActionPanel(
             Modifier
                 .fillMaxWidth()
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ImportFileOption(
                 info.filePath,
@@ -189,7 +189,7 @@ private fun AdvancedOptionsGroup(
         modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        GroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.general.advancedSettings"))
+        AppGroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.general.advancedSettings"))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),

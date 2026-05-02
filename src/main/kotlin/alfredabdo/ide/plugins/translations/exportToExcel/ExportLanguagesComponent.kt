@@ -2,6 +2,7 @@ package alfredabdo.ide.plugins.translations.exportToExcel
 
 import TranslationsHelperBundle
 import alfredabdo.ide.plugins.translations.ui.common.ContextHelpButton
+import alfredabdo.ide.plugins.translations.ui.group.AppGroupHeader
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun ExportLanguagesComponent(
+    fileName: String,
     states: List<ExportLanguageItemData>,
     onlyIfMissing: Boolean,
     onOnlyIfMissingChanged: (newState: Boolean) -> Unit,
@@ -30,22 +32,15 @@ internal fun ExportLanguagesComponent(
 ) {
     Column(
         modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.title"))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                onlyIfMissing,
-                onOnlyIfMissingChanged,
-            )
-            Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing"))
-            ContextHelpButton(
-                TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing.help"),
-                contentDescription = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing.help.contentDescription"),
-            )
-        }
+        AppGroupHeader(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.title"))
+        Text(
+            TranslationsHelperBundle.message(
+                "action.alfredabdo.ide.plugins.translations.exportToExcel.ExportStringsToExcelAction.languages.confirmation.message",
+                fileName,
+            ),
+        )
         states.forEach { state ->
             key(state) {
                 val labelTextFieldState = rememberTextFieldState(state.label)
@@ -76,6 +71,19 @@ internal fun ExportLanguagesComponent(
                 .border(1.dp, JewelTheme.contentColor, RoundedCornerShape(8.dp))
                 .width(32.dp),
         )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(
+                onlyIfMissing,
+                onOnlyIfMissingChanged,
+            )
+            Text(TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing"))
+            ContextHelpButton(
+                TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing.help"),
+                contentDescription = TranslationsHelperBundle.message("alfredabdo.ide.plugins.translations.ui.languagesComponent.onlyIfMissing.help.contentDescription"),
+            )
+        }
     }
 }
 
