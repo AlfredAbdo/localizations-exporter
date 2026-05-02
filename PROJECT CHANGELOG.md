@@ -6,7 +6,7 @@
 - Added Jewel's VerticalScrollbar to both import and export to let the user see the content if many languages are added:
   - Had to set an exact size to the parent Box to 640 x 320 dp because the VerticalScrollbar always takes the max parent's height.
 - Improved the export and import UIs by moving some components and fixing some messages to be clearer.
-- Updated screenshots in README section to reflect latest changes.
+- Updated README.md and the screenshots to reflect all the new changes.
 
 ## [0.1.0-alpha07] (_28/04/2026_)
 

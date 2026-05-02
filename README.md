@@ -18,11 +18,15 @@ The published plugin is also available in GitHub Releases.
 
 ## Export Strings to Excel
 
-Right-click inside the strings.xml file (most probably the default one) → Localizations → Export Strings to Excel.
+Right-click inside the strings.xml file (most probably the default one) → Localizations → Export Strings to Excel. You can also right-click
+the file from the Project View.
 
 ![export strings](readMeAssets/images/export-strings.webp "Export Strings")
 
-- Add the languages you want to export from:
+- Choose the directory where you want to export the Excel xlsx file to.
+    - If left empty, it points to the default directory specified in settings, you can hover over the help icon to see what the default
+      directory will be.
+- Languages: add the languages you want to export from.
     - By default, the currently opened file is added as a language (the code is automatically detected and unmodifiable).
     - You can add a language by adding the label that will be shown in the Excel file for the related column (for e.g. "English"), and the
       language code you want to pull the strings from (for e.g. "ar").
@@ -30,9 +34,10 @@ Right-click inside the strings.xml file (most probably the default one) → Loca
     - Note that if you want to get the strings from the default file (the one inside the "values" folder, that does not have a language
       code), write "(default)" (without the quotes) for the code.
 - Check "only if missing" if you only want to export the strings that are not translated into all the languages added.
-- Choose the directory where you want to export the Excel xlsx file to.
-    - If left empty, it points to the default directory specified in settings, you can hover over the help icon to see what the default
-      directory will be.
+- Advanced Settings:
+    - _Convert character `&amp;` to '&'_: if checked, converts all instances of the XML version of the ampersand (`&amp;`) to the normal
+      character `&` when exporting.
+    - _Extract CDATA content_: if checked, unwraps all CDATA tags found, only keeping the raw strings when exporting.
 
 ![export strings popup](readMeAssets/images/export-strings-popup.webp "Export Strings Popup")
 
@@ -53,13 +58,14 @@ First make sure your Excel .xlsx file would contain the needed localizations in 
 
 _N.B: Make sure the values in the file don't contain extra lines, or you will need to fix the values after exporting_
 
-Right-click inside the default strings.xml or inside the target strings.xml → Localizations → Import Strings from Excel.
+Right-click inside the default strings.xml or inside the target strings.xml → Localizations → Import Strings from Excel. You can also
+right-click the file from the Project View.
 
 ![import strings](readMeAssets/images/import-strings.webp "Import Strings")
 
 - Specify the input Excel xlsx
 - Set which column will have the ids of the strings ("name")
-- Add the languages you want to export to:
+- Languages: add the languages you want to export to.
     - By default, the currently opened file is added as a language (the code is automatically detected and unmodifiable), and is assumed to
       be the 2nd column (index 1).
     - You can add a language by adding the column index to read the strings from (zero-based index, so 0 is the first column), and the
@@ -71,6 +77,12 @@ Right-click inside the default strings.xml or inside the target strings.xml → 
   updating the value instead of just adding the duplicate string resources.
     - Not checking it will allow you to resolve any conflicts yourself manually, so you can see which values you want to keep.
     - The update behavior also takes more time because each insertion will now need to check all the resources for conflicts.
+- Advanced Settings:
+    - _How to handle special characters_: you can change how importing the strings will handle special characters (for now, it's only
+      the '&' character).
+        - _None_: Import the strings as is.
+        - _Convert to XML special character_: Convert all instances of the `&` character into the XML equivalent `&amp;` when importing.
+        - _Wrap in CDATA_: When a `&` character is detected in a string, that string will be wrapped in a CDATA tag.
 
 ![import strings popup](readMeAssets/images/import-strings-popup.webp "Import Strings Popup")
 
