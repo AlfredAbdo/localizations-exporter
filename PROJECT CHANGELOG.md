@@ -1,5 +1,9 @@
 # Project Changelog
 
+## [0.1.0-alpha09] (_unreleased_)
+
+- Updated IntelliJ Platform Plugin version to _2.16.0_ where the KotlinCompile bug is resolved.
+
 ## [0.1.0-alpha08] (_02/05/2026_)
 
 - Updated Java SDK to 21 in order to better support Wayland in Linux.
