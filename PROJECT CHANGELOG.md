@@ -3,6 +3,7 @@
 ## [0.1.0-alpha09] (_unreleased_)
 
 - Updated IntelliJ Platform Plugin version to _2.16.0_ where the KotlinCompile bug is resolved.
+- Removed buildSearchableOptions = false, as it works now without setting it to false.
 
 ## [0.1.0-alpha08] (_02/05/2026_)
 
