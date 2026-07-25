@@ -7,6 +7,7 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -96,7 +97,7 @@ class ExportStringsToExcelService(
     }
 
 
-    private fun exportXMLToExcel(
+    private suspend fun exportXMLToExcel(
         currentFile: XmlFile,
         outputFile: File,
         languages: List<Details.Language>,
@@ -141,7 +142,7 @@ class ExportStringsToExcelService(
         rowIndex++
 
 
-        runReadAction {
+        /*runReadAction {
             val elements = data.asSequence()
                 .map { info ->
                     info to (info.file?.rootTag?.takeIf { it.name == "resources" }?.subTags ?: emptyArray())
@@ -152,7 +153,7 @@ class ExportStringsToExcelService(
                         .map { element -> element to info.code }
                         .toList()
                 }
-                .groupBy { (element, /*code*/_) -> element.getAttributeValue("name").orEmpty() }
+                .groupBy { (element, *//*code*//*_) -> element.getAttributeValue("name").orEmpty() }
 
             elements.forEach { (id, relatedElements) ->
                 if (!onlyIfMissing || relatedElements.size < languages.size) {
@@ -174,8 +175,41 @@ class ExportStringsToExcelService(
                     rowIndex++
                 }
             }
-        }
+        }*/
 
+        val elements = readAction {
+            data.asSequence()
+                .map { info ->
+                    info to (info.file?.rootTag?.takeIf { it.name == "resources" }?.subTags ?: emptyArray())
+                }
+                .flatMap { (info, elements) ->
+                    elements.asSequence()
+                        .filter { element -> element.name == "string" && element.getAttributeValue("name") != null }
+                        .map { element -> element to info.code }
+                        .toList()
+                }
+                .groupBy { (element, /*code*/_) -> element.getAttributeValue("name").orEmpty() }
+        }
+        elements.forEach { (id, relatedElements) ->
+            if (!onlyIfMissing || relatedElements.size < languages.size) {
+                sheet.createRow(rowIndex).run {
+                    createCell(0, CellType.STRING).run {
+                        setCellValue(id)
+                    }
+
+                    relatedElements.forEach { (element, code) ->
+                        val value = element.value.text
+                            .let { text -> if (ampersandConversion) text.replace("&amp;", "&") else text }
+                            .let { text -> if (cdataUnwrapping) text.removeSurrounding("<![CDATA[", "]]>") else text }
+                        val index = languages.indexOfFirst { it.code == code }
+                        createCell(1 + index, CellType.STRING).run {
+                            setCellValue(value)
+                        }
+                    }
+                }
+                rowIndex++
+            }
+        }
 
         outputFile.outputStream().use { fos ->
             workbook.write(fos)

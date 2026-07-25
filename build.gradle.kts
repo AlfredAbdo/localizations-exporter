@@ -69,8 +69,14 @@ intellijPlatform {
         }
 
         ideaVersion {
-            sinceBuild = "251"
-            untilBuild = "253.*"
+            sinceBuild = "253"
+            untilBuild = "261.*"
+        }
+    }
+
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
 

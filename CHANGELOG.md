@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha09] (_25/07/2026_)
+
+### Modified
+
+- Updated to support until Android Studio Quail 2.
+  - But had to increase the minimum supported Android Studio version to Panda due to the updated dependencies.
+
 ## [0.1.0-alpha08] (_02/05/2026_)
 
 ### Added

@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 package alfredabdo.ide.plugins.translations.importFromExcel
 
 import TranslationsHelperBundle
