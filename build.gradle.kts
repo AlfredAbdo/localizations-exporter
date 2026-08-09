@@ -91,7 +91,7 @@ intellijPlatform {
 
     publishing {
         token = System.getenv("PUBLISH_TOKEN")
-        channels = listOf("alpha")
+        channels = listOf("default")
     }
 }
 
