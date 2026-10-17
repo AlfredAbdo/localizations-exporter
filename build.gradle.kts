@@ -70,7 +70,7 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = "253"
-            untilBuild = "261.*"
+            untilBuild = "262.*"
         }
     }
 
@@ -126,5 +126,5 @@ githubRelease {
     targetCommitish = "main"
     releaseName = "v${version}"
     generateReleaseNotes = true
-    prerelease = true
+    prerelease = false
 }

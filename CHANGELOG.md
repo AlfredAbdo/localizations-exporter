@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0] (_17/10/2026_)
+
+### Modified
+
+- Updated support up to Android Studio Rabbit.
+
 ## [0.1.0-alpha09] (_25/07/2026_)
 
 ### Modified

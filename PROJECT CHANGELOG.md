@@ -1,11 +1,16 @@
 # Project Changelog
 
+## [0.1.0] (_17/10/2026_)
+
+- Updated dependencies to latest available versions.
+- Updated support up to Android Studio Idea build version _262.*_ (Rabbit). 
+
 ## [0.1.0-alpha09] (_25/07/2026_)
 
 - Updated IntelliJ Platform Plugin version to _2.16.0_ where the KotlinCompile bug is resolved.
 - Removed buildSearchableOptions = false, as it works now without setting it to false.
 - Updated dependencies to latest available versions.
-- Updated to support until Android Studio Idea build version _261.*_ (Quail).
+- Updated support up to Android Studio Idea build version _261.*_ (Quail).
     - But had to increase the minimum supported Android Studio version to _253.*_ (Panda) due to the updated dependencies.
 - Added pluginVerification config to intellijPlatform for using verifyPlugin to detect incompatibilities with the Android Studio versions
   covered.
